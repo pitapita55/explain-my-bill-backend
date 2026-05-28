@@ -13,7 +13,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// ─── Database Setup ───────────────────────────────────────────────
+// Database Setup
 async function setupDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -29,7 +29,7 @@ async function setupDB() {
   console.log('Database ready');
 }
 
-// ─── Helper: Get or create user ───────────────────────────────────
+// Helper: Get or create user
 async function getOrCreateUser(deviceId) {
   let result = await pool.query(
     'SELECT * FROM users WHERE device_id = $1',
@@ -44,7 +44,7 @@ async function getOrCreateUser(deviceId) {
   return result.rows[0];
 }
 
-// ─── Helper: Check if user can analyze ────────────────────────────
+// Helper: Check if user can analyze
 function canAnalyze(user) {
   const FREE_LIMIT = 3;
   if (user.subscription_status === 'active') return { allowed: true, reason: 'subscribed' };
@@ -58,7 +58,7 @@ function canAnalyze(user) {
   return { allowed: false, reason: 'limit_reached' };
 }
 
-// ─── Route: Check user status ─────────────────────────────────────
+// Route: Check user status
 app.post('/api/status', async (req, res) => {
   try {
     const { deviceId } = req.body;
@@ -81,7 +81,7 @@ app.post('/api/status', async (req, res) => {
   }
 });
 
-// ─── Route: Analyze bill ──────────────────────────────────────────
+// Route: Analyze bill
 app.post('/api/analyze', async (req, res) => {
   try {
     const { deviceId, billType, billText, imageBase64, mediaType } = req.body;
@@ -170,7 +170,7 @@ Rules: 4-8 lineItems, 2-4 flags, 2-3 disputes, 3-5 glossary terms. Write for non
   }
 });
 
-// ─── Route: Create Stripe checkout session ────────────────────────
+// Route: Create Stripe checkout session
 app.post('/api/subscribe', async (req, res) => {
   try {
     const { deviceId } = req.body;
@@ -178,7 +178,6 @@ app.post('/api/subscribe', async (req, res) => {
 
     const user = await getOrCreateUser(deviceId);
 
-    // Get or create Stripe customer
     let customerId = user.stripe_customer_id;
     if (!customerId) {
       const customer = await stripe.customers.create({
@@ -191,7 +190,6 @@ app.post('/api/subscribe', async (req, res) => {
       );
     }
 
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -202,7 +200,7 @@ app.post('/api/subscribe', async (req, res) => {
             name: 'Explain My Bill — Monthly',
             description: 'Unlimited bill analysis powered by Claude AI',
           },
-          unit_amount: 299, // $2.99
+          unit_amount: 299,
           recurring: { interval: 'month' },
         },
         quantity: 1,
@@ -220,7 +218,7 @@ app.post('/api/subscribe', async (req, res) => {
   }
 });
 
-// ─── Route: Stripe webhook ────────────────────────────────────────
+// Route: Stripe webhook
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -267,7 +265,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   }
 });
 
-// ─── Route: Cancel subscription ───────────────────────────────────
+// Route: Cancel subscription
 app.post('/api/cancel', async (req, res) => {
   try {
     const { deviceId } = req.body;
@@ -287,14 +285,11 @@ app.post('/api/cancel', async (req, res) => {
   }
 });
 
-// ─── Route: Health check ──────────────────────────────────────────
+// Route: Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', version: '1.0.0' }));
 
-// ─── Start server ─────────────────────────────────────────────────
+// Start server
 const PORT = process.env.PORT || 3000;
 setupDB().then(() => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });
-/ /   v 2   -   f r e s h   d e p l o y  
- / /   v 2  
- 
