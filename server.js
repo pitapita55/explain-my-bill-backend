@@ -141,7 +141,7 @@ Rules: 4-8 lineItems, 2-4 flags, 2-3 disputes, 3-5 glossary terms. Write for non
     }
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-haiku-20240307',
       max_tokens: 1500,
       messages,
     });
@@ -310,7 +310,7 @@ Use [YOUR NAME], [YOUR ADDRESS], [DATE], [PROVIDER NAME] as placeholders.
 Keep it under 300 words.`;
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-haiku-20240307',
       max_tokens: 600,
       messages: [{ role: 'user', content: prompt }],
     });
@@ -331,3 +331,4 @@ const PORT = process.env.PORT || 3000;
 setupDB().then(() => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });
+
